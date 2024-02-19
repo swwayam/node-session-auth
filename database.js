@@ -22,4 +22,42 @@ function authenticateUser(username, password, callback) {
 
 
 // Do not modify any code below this line
+
 module.exports = { registerUser, authenticateUser };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
