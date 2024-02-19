@@ -7,6 +7,7 @@ const app = express();
 const PORT = 3000;
 
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
 app.use(
   session({
     secret: "your_secret_key",
@@ -23,6 +24,19 @@ function isAuthenticated(req, res, next) {
   }
   next();
 }
+
+// Middleware to extend session expiry
+function extendSessionExpiry(req, res, next) {
+  if (req.session) {
+    // Reset the expiration time after each request
+    req.session._garbage = Date();
+    req.session.touch();
+  }
+  next();
+}
+
+// Apply extendSessionExpiry middleware globally
+app.use(extendSessionExpiry);
 
 app.post('/register', (req, res) => {
     const { username, password } = req.body;
