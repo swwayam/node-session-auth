@@ -9,6 +9,7 @@ const bcrypt = require('bcrypt');
 // Write Code For - Creating the table
 
 
+
 // Write Code For - Register user
 function registerUser(username, password, callback) {
   
