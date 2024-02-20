@@ -1,68 +1,103 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import supertest from 'supertest';
-import app from './app'; // Adjust this path to where your Express app is exported
-import { registerUser, authenticateUser } from './database'; // Adjust the path as necessary
-const request = supertest(app);
+import app from './app';
+import { getUser } from './database'; 
+import request from 'supertest';
 
-// Mock the database functions
-vi.mock('./database', () => ({
-  registerUser: vi.fn(),
-  authenticateUser: vi.fn(),
-}));
+
+const api = supertest(app);
+
 
 describe('POST /register', () => {
-    it('should register a user successfully', async () => {
-      // Mock the `registerUser` to simulate successful registration
-      registerUser.mockImplementation((username, password, callback) => callback(null));
-  
-      const response = await request.post('/register').send({
-        username: 'newuser',
-        password: 'newpassword',
-      });
-  
-      expect(response.status).toBe(200);
-      expect(response.text).toContain('User registered successfully');
+  it('should register a user successfully', async () => {
+    const username = `testUser_${Date.now()}`; 
+    const response = await api.post('/register').send({
+      username: username,
+      password: 'newpassword',
     });
-  
-    it('should return an error if the username is already taken', async () => {
-      // Simulate a SQLITE_CONSTRAINT error
-      registerUser.mockImplementation((username, password, callback) => callback({ code: 'SQLITE_CONSTRAINT' }));
-  
-      const response = await request.post('/register').send({
-        username: 'existinguser',
-        password: 'password',
-      });
-  
-      expect(response.status).toBe(409);
-      expect(response.text).toContain('This username is already taken');
-    });
+
+    const user = await getUser(username);
+    expect(user).toBeTruthy(); 
+    expect(response.status).toBe(200);
+
   });
 
-  describe('POST /login', () => {
-    it('should log in a user successfully', async () => {
-      // Mock `authenticateUser` to simulate successful login
-      authenticateUser.mockImplementation((username, password, callback) => callback(null, { id: 1, username: 'user', password: 'hashedpassword' }));
-  
-      const response = await request.post('/login').send({
-        username: 'user',
-        password: 'password',
-      });
-  
-      expect(response.status).toBe(200);
-      expect(response.text).toContain('Logged in successfully');
+  it('should return an error if the username is already taken', async () => {
+    const username = 'existinguser';
+    await api.post('/register').send({
+      username: username,
+      password: 'password',
     });
-  
-    it('should fail to log in with incorrect credentials', async () => {
-      // Simulate login failure
-      authenticateUser.mockImplementation((username, password, callback) => callback(null, false));
-  
-      const response = await request.post('/login').send({
-        username: 'user',
-        password: 'wrongpassword',
-      });
-  
-      expect(response.status).toBe(200); // Assuming your endpoint responds with 200 and a failure message
-      expect(response.text).toContain('Login failed');
+    const response = await api.post('/register').send({
+      username: username,
+      password: 'password',
     });
+
+    expect(response.status).toBe(409);
+    expect(response.text).toContain('This username is already taken');
   });
-  
+});
+
+describe('POST /login', () => {
+  it('should log in a user successfully', async () => {
+    const username = `user_${Date.now()}`;
+    await api.post('/register').send({
+      username: username,
+      password: 'password',
+    });
+
+    const response = await api.post('/login').send({
+      username: username,
+      password: 'password',
+    });
+
+    expect(response.status).toBe(200);
+    expect(response.text).toContain('Logged in successfully');
+  });
+
+  it('should fail to log in with incorrect credentials', async () => {
+    const username = `user_${Date.now()}`;
+    await api.post('/register').send({
+      username: username,
+      password: 'correctpassword',
+    });
+
+    const response = await api.post('/login').send({
+      username: username,
+      password: 'wrongpassword',
+    });
+
+    expect(response.status).toBe(200);
+    expect(response.text).toContain('Login failed');
+  });
+});
+
+describe('Home Route Access Control', () => {
+  let agent;
+
+  beforeEach(() => {
+    agent = request.agent(app); 
+    // Use an agent to maintain session state
+  });
+
+  it('denies access to /home without login', async () => {
+    const response = await agent.get('/home');
+    expect(response.status).toBe(200); // Assuming you're just sending back a text response for denied access
+    expect(response.text).toBe('You must login to view this page.');
+  });
+
+  it('grants access to /home with valid login', async () => {
+    // Simulate login
+    const username = `user_${Date.now()}`;
+    await agent.post('/register').send({
+      username: username,
+      password: 'validPassword',
+    });
+    await agent.post('/login').send({ username, password: 'validPassword' }).expect(200);
+
+    // Attempt to access the protected home route
+    const response = await agent.get('/home');
+    expect(response.status).toBe(200);
+    expect(response.text).toBe('Welcome to the protected home page!');
+  });
+});

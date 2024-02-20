@@ -67,6 +67,7 @@ app.post('/register', (req, res) => {
 app.get("/home", isAuthenticated, (req, res) => {
   res.send("Welcome to the protected home page!");
 });
+
 // Login endpoint
 app.post("/login", (req, res) => {
   const { username, password } = req.body;
@@ -82,3 +83,5 @@ app.post("/login", (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
+
+module.exports = app; // Make sure this is at the end of your app.js

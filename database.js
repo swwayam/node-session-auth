@@ -53,4 +53,20 @@ function authenticateUser(username, password, callback) {
   });
 }
 
-module.exports = { registerUser, authenticateUser };
+
+
+
+function getUser(username) {
+  return new Promise((resolve, reject) => {
+    const sql = `SELECT * FROM users WHERE username = ?`;
+    db.get(sql, [username], (err, row) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(row); // Resolve with the row (user data) or null if not found
+      }
+    });
+  });
+}
+
+module.exports = { registerUser, authenticateUser, getUser };
