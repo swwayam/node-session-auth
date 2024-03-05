@@ -67,8 +67,6 @@ app.listen(PORT, () => {
 
 
 
-
-
 app.post("/checkDatabaseFunctions", (req, res) => {
   const { username, password } = req.body;
   registerUser(username, password, (err) => {
