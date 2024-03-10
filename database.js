@@ -6,11 +6,41 @@ const bcrypt = require("bcrypt");
 
 // Write Code For - Creating the table
 
-// Write Code For - Register user
+
+/**
+ * Registers a new user by hashing the provided password and storing the username and hashed password in the database.
+ *
+ * @param {string} username - The username of the new user.
+ * @param {string} password - The password of the new user.
+ * @param {function} callback - A callback function to handle the registration result.
+ *   - Takes one parameter: (error)
+ *     - If registration is successful, 'error' is null.
+ *     - If there is an error during the registration process, 'error' contains the error details.
+ */
 function registerUser(username, password, callback) {}
 
-// Write Code For - Authenticate user (to check if user is present in DB and to check for the correct password)
+
+/**
+ * Authenticates a user by checking the provided username and password against the database.
+ *
+ * @param {string} username - The username to authenticate.
+ * @param {string} password - The password to authenticate.
+ * @param {function} callback - A callback function to handle the authentication result.
+ *   - Takes two parameters: (error, user)
+ *     - If authentication is successful, 'error' is null and 'user' contains user information.
+ *     - If authentication fails, 'error' is null and 'user' is false.
+ *     - If there is an error during the authentication process, 'error' contains the error details and 'user' is null.
+ */
+
 function authenticateUser(username, password, callback) {}
+
+
+
+
+
+
+
+
 
 
 
